@@ -30,8 +30,9 @@ class Weather(tk.Tk):
         #this part sets all the entries to the same style:
         self.style.configure("TEntry", font=("Helvetica", 12), padding=5, relief="flat")
 
-        #background image of the Frame:
+        self.history = ["History:"]
 
+        #background image of the Frame:
         #tkinter has a bug where if you try to use images in functions, the reference gets garbage collected. We have to keep a manual reference
         path = r"images\5-2-space-png-pic.png"
         image1 = self.return_image_object(path)
@@ -124,6 +125,11 @@ class MainPage(tk.Frame):
         self.city_entry = ttk.Entry(self, textvariable=self.s, validate='all', validatecommand=(city_valid, '%P'), font=("Helvetica", 12))
         self.city_entry.grid(column=1, row=2, columnspan=1, sticky="nsew", pady=5)
 
+
+        self.city_history = ttk.Combobox(self, values=parent.history, state="readonly")
+        self.city_history.grid(column=1, row=2, sticky="se", pady=5)
+        self.city_history.set("Your city history:")
+
         
         self.city_button = ttk.Button(self, text="GO", command=self.go_weather, style="Custom.TButton")
         self.city_button.grid(column=1, row=3, columnspan=1, sticky="nsew")
@@ -176,6 +182,7 @@ class MainPage(tk.Frame):
             if response.status_code == 400:
                 self.error_message.config(text=f"{self.city_entry.get()} is not a valid city")
             else:
+                self.city_entry.delete(0, tk.END)
                 self.parent.response_dictionary = response.json()
                 #this if else is to know if WeatherPage has already been accessed and deleted, or if it is the first time it is being accessed
                 if self.parent.frames[WeatherPage] != None:
@@ -186,6 +193,10 @@ class MainPage(tk.Frame):
                     self.parent.generate_weather_frame()
                     self.parent.show_frame(WeatherPage)
                     self.parent.frames[WeatherPage].generate.invoke()
+
+                #this is to update the history in the readpnly comobox
+                self.parent.history.append(self.parent.param['q'])
+                self.city_history.config(values=self.parent.history)
 
     def go_fav(self):
         #this is basically gonna be a copy of the go_weather function lol sorry not sorry
