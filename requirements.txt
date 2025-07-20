@@ -1,0 +1,7 @@
+You need to import:
+
+import tkinter as tk
+from tkinter import ttk
+import ttkbootstrap as tb
+import requests
+from PIL import Image, ImageTk
