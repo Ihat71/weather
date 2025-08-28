@@ -117,7 +117,7 @@ class MainPage(tk.Frame):
         self.title_label = ttk.Label(self, text="               Ihat's    \n          Weather App", font=("Helvetica", 20, "bold"), foreground="#182069", background="white")
         self.title_label.grid(column=1, row=0, columnspan=1, sticky="nsew")
 
-        self.city_label = ttk.Label(self, text="\n\nCity name:", font=("Helvetica", 12, "bold"), background="white", foreground="#000000")
+        self.city_label = ttk.Label(self, text="\n\nRegion name:", font=("Helvetica", 12, "bold"), background="white", foreground="#000000")
         self.city_label.grid(column=1, row=1, columnspan=1, sticky="nsew")
 
         #validation:
