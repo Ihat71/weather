@@ -1,3 +1,4 @@
 ttkbootstrap
 requests
 Pillow
+dotenv

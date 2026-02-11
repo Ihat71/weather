@@ -3,7 +3,14 @@ from tkinter import ttk
 import ttkbootstrap as tb
 import requests
 from PIL import Image, ImageTk
+import os
+from dotenv import load_dotenv
 
+load_dotenv() 
+API_KEY = os.getenv("WEATHER_API_KEY")  
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+IMAGE_DIR = os.path.join(BASE_DIR, "images")
 
 #completely without AI
 
@@ -45,7 +52,7 @@ class Weather(tk.Tk):
             print("will not create label")
 
         # this is my API key that I will use
-        self.__key = "e872f19aad18480b88994727242108"
+        self.__key = str(API_KEY)
         self._url = "http://api.weatherapi.com/v1/current.json"
         self.response_dictionary = {}
 
@@ -160,10 +167,8 @@ class MainPage(tk.Frame):
         self.error_message.grid(column=0, row=2, sticky="nsew")
 
         #this is the button that will store our favourite city
-        self.twinkle = self.parent.return_image_object("images\star2.png", True, (45, 45))
+        self.twinkle = self.parent.return_image_object(r"images\star2.png", True, (45, 45))
         self.go_favorite_city = ttk.Button(self, text="", command=self.go_fav, image=self.twinkle, compound="left")
-
-
 
 
     def validate_city(self, city):
@@ -173,30 +178,42 @@ class MainPage(tk.Frame):
             return True
         else:
             return False
+        
     def go_weather(self):
             #this function needs more work and alsp try not to hardcode urls lol
             self.parent.param['q'] = self.city_entry.get()
             # this is the actual request for the API
-            response = requests.get(self.parent._url, self.parent.param)
-
-            if response.status_code == 400:
-                self.error_message.config(text=f"{self.city_entry.get()} is not a valid city")
-            else:
-                self.city_entry.delete(0, tk.END)
-                self.parent.response_dictionary = response.json()
-                #this if else is to know if WeatherPage has already been accessed and deleted, or if it is the first time it is being accessed
-                if self.parent.frames[WeatherPage] != None:
-                    self.parent.show_frame(WeatherPage)
-                #this invokes the generate button in weather page which will allow us to code on main rather than the weather page constructor
-                    self.parent.frames[WeatherPage].generate.invoke()
+            try:
+                response = requests.get(self.parent._url, self.parent.param)
+                response.raise_for_status
+                if response.status_code == 400:
+                    self.error_message.config(text=f"{self.city_entry.get()} is not a valid city")
                 else:
-                    self.parent.generate_weather_frame()
-                    self.parent.show_frame(WeatherPage)
-                    self.parent.frames[WeatherPage].generate.invoke()
+                    self.city_entry.delete(0, tk.END)
+                    self.parent.response_dictionary = response.json()
+                    #this if else is to know if WeatherPage has already been accessed and deleted, or if it is the first time it is being accessed
+                    if self.parent.frames[WeatherPage] != None:
+                        self.parent.show_frame(WeatherPage)
+                    #this invokes the generate button in weather page which will allow us to code on main rather than the weather page constructor
+                        self.parent.frames[WeatherPage].generate.invoke()
+                    else:
+                        self.parent.generate_weather_frame()
+                        self.parent.show_frame(WeatherPage)
+                        self.parent.frames[WeatherPage].generate.invoke()
 
-                #this is to update the history in the readpnly comobox
-                self.parent.history.append(self.parent.param['q'])
-                self.city_history.config(values=self.parent.history)
+                    #this is to update the history in the readpnly comobox
+                    self.parent.history.append(self.parent.param['q'])
+                    self.city_history.config(values=self.parent.history)
+            except requests.exceptions.HTTPError as http_err:
+                self.error_message.config(text=f"HTTP error: {http_err}")
+            except requests.exceptions.ConnectionError:
+                self.error_message.config(text="Connection error! Check your internet.")
+            except requests.exceptions.Timeout:
+                self.error_message.config(text="Request timed out.")
+            except requests.exceptions.RequestException as err:
+                self.error_message.config(text=f"An error occurred: {err}")
+            except ValueError:
+                self.error_message.config(text="Invalid response received from API")
 
     def go_fav(self):
         #this is basically gonna be a copy of the go_weather function lol sorry not sorry
@@ -363,7 +380,7 @@ class WeatherPage(tk.Frame):
         #changes the icon to a full color star
         if self.fav_button_pressed == 0:
             self.fav_button_pressed = 1
-            star = self.parent.return_image_object("images\star3.png", True, (35,35))
+            star = self.parent.return_image_object(r"images\star3.png", True, (35,35))
             self.favorite.config(image=star)
             self.favorite.whatever = star
 
@@ -380,7 +397,7 @@ class WeatherPage(tk.Frame):
         else:
             #this is if fav was already pressed
             self.fav_button_pressed = 0
-            star = self.parent.return_image_object("images\star1.png", True, (35,35))
+            star = self.parent.return_image_object(r"images\star1.png", True, (35,35))
             self.favorite.config(image=star)
             self.favorite.whatever = star
             
