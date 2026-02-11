@@ -4,9 +4,18 @@ import ttkbootstrap as tb
 import requests
 from PIL import Image, ImageTk
 import os
+import sys
 from dotenv import load_dotenv
 
-load_dotenv() 
+
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS  # PyInstaller temp folder
+    except Exception:
+        base_path = os.path.abspath(".")  # Normal Python run
+    return os.path.join(base_path, relative_path)
+
+load_dotenv(resource_path('.env')) 
 API_KEY = os.getenv("WEATHER_API_KEY")  
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -41,7 +50,7 @@ class Weather(tk.Tk):
 
         #background image of the Frame:
         #tkinter has a bug where if you try to use images in functions, the reference gets garbage collected. We have to keep a manual reference
-        path = r"images\5-2-space-png-pic.png"
+        path = resource_path(os.path.join("images", "5-2-space-png-pic.png"))
         image1 = self.return_image_object(path)
         if image1:            
             self.bg_image = tk.Label(self, image=image1)
@@ -95,13 +104,15 @@ class Weather(tk.Tk):
             try:
                 #this snippet of code is so that I can use the funciton to resize the images optionally
                 if resize_boolean:
-                    image = ImageTk.PhotoImage(Image.open(path).resize(resize_tuple))
+                    self.image = ImageTk.PhotoImage(Image.open(path).resize(resize_tuple))
                 else:
-                    image = ImageTk.PhotoImage(Image.open(path))
-                return image
+                    self.image = ImageTk.PhotoImage(Image.open(path))
+                return self.image
             except FileNotFoundError as e:
                 print(f"File was not found!: {e}")
                 return False
+
+
             
 class MainPage(tk.Frame):
     def __init__(self, parent):
@@ -142,7 +153,7 @@ class MainPage(tk.Frame):
         self.city_button.grid(column=1, row=3, columnspan=1, sticky="nsew")
 
         #cloud icon:
-        path = r"images\4834559.png"
+        path = resource_path(os.path.join("images", "4834559.png"))
         cloud_icon = parent.return_image_object(path, True, (100,100))
         if cloud_icon:            
             self.cloud_image = tk.Label(self, image=cloud_icon, background="white", pady=10, padx=10)
@@ -153,7 +164,7 @@ class MainPage(tk.Frame):
             print("will not create label")
 
         #city_icon
-        path = r"images\360_F_1135657090_OLldcV1pIOA8jumorzwp00JnJ8VBXnGf.jpg"
+        path = resource_path(os.path.join("images", "360_F_1135657090_OLldcV1pIOA8jumorzwp00JnJ8VBXnGf.jpg"))
         city_icon = parent.return_image_object(path, True, (80,80))
         if city_icon:            
             self.city_image = tk.Label(self, image=city_icon, background="white", pady=10, padx=10)
@@ -167,7 +178,8 @@ class MainPage(tk.Frame):
         self.error_message.grid(column=0, row=2, sticky="nsew")
 
         #this is the button that will store our favourite city
-        self.twinkle = self.parent.return_image_object(r"images\star2.png", True, (45, 45))
+        twinkle = resource_path(os.path.join("images", "star2.png"))
+        self.twinkle = self.parent.return_image_object(twinkle, True, (45, 45))
         self.go_favorite_city = ttk.Button(self, text="", command=self.go_fav, image=self.twinkle, compound="left")
 
 
@@ -234,6 +246,7 @@ class MainPage(tk.Frame):
                 self.parent.generate_weather_frame()
                 self.parent.show_frame(WeatherPage)
                 self.parent.frames[WeatherPage].generate.invoke()
+
     
 class WeatherPage(tk.Frame):
     def __init__(self, parent):
@@ -284,7 +297,7 @@ class WeatherPage(tk.Frame):
 
         #but now we have to make all the widgets inside canvas_frame (or you can still do self)
         #back arrow icon:
-        path = r"images\left_arrow.png"
+        path = resource_path(os.path.join("images", "left_arrow.png"))
         back_icon = self.parent.return_image_object(path, True, (25, 25))
         if back_icon:            
             self.go_back_arrow = ttk.Button(self.canvas_frame, image=back_icon, command=self.go_main_page)
@@ -293,9 +306,9 @@ class WeatherPage(tk.Frame):
         else:
             print("will not create Button")
 
-        path_star1 = r"images\star1.png"
+        path_star1 = resource_path(os.path.join("images", "star1.png"))
         #this path is for if the city selected is the favorite city
-        path_star2 = r"images\star3.png"
+        path_star2 = resource_path(os.path.join("images", "star3.png"))
         star1 = self.parent.return_image_object(path_star1, True, (35,35))
         star2 = self.parent.return_image_object(path_star2, True, (35,35))
         if star1 and star2:
@@ -317,7 +330,7 @@ class WeatherPage(tk.Frame):
             self.canvas_frame.configure(background="black")
             self.parent.style.configure(style= "TLabel", foreground="#ffffff", background="#000000")
             #night icon
-            path = r"images\night_icon.png"
+            path = resource_path(os.path.join("images", "night_icon.png"))
             night_icon = self.parent.return_image_object(path, True, (60, 60))
             if night_icon:            
                 self.location_and_time = ttk.Label(self.canvas_frame, text=f"{country}\n{region}, {self.city}:\n{local_time}", font=("Inter", 15, "bold"), image=night_icon, compound="right")
@@ -329,7 +342,7 @@ class WeatherPage(tk.Frame):
             self.weather_canvas.configure(background="white")
             self.canvas_frame.configure(background="white")
             self.parent.style.configure(style= "TLabel", foreground="#121212", background="#e0e0e0")
-            path = r"images\day_icon.png"
+            path = resource_path(os.path.join("images", "day_icon.png"))
             day_icon = self.parent.return_image_object(path, True, (60, 60))
             if day_icon:            
                 self.location_and_time = ttk.Label(self.canvas_frame, text=f"{country}\n{region}, {self.city}:\n{local_time}", font=("Inter", 15, "bold"), image=day_icon, compound="right")
@@ -340,22 +353,22 @@ class WeatherPage(tk.Frame):
 
         #this is to determine what weather icon to choose
         if "sunny" in how_is_the_weather.lower():
-            path = r"images\sunny_day.png"
+            path = resource_path(os.path.join("images", "sunny_day.png"))
             weather_icon = self.parent.return_image_object(path, True, (60, 60))
         elif "clear" in how_is_the_weather.lower():
-            path = r"images\weather-clear-night (1).png"
+            path = resource_path(os.path.join("images", "weather-clear-night (1).png"))
             weather_icon = self.parent.return_image_object(path, True, (60, 60))
         elif ("cloudy" in how_is_the_weather.lower() or "overcast" in how_is_the_weather.lower()) and is_day == 1:
-            path = r"images\cloudy_day.png"
+            path = resource_path(os.path.join("images", "cloudy_day.png"))
             weather_icon = self.parent.return_image_object(path, True, (60, 60))
         elif ("cloudy" in how_is_the_weather.lower() or "overcast" in how_is_the_weather.lower()) and is_day == 0:
-            path = r"images\cloudy_night.png"
+            path = resource_path(os.path.join("images", "cloudy_night.png"))
             weather_icon = self.parent.return_image_object(path, True, (60, 60))
         elif "rain" in how_is_the_weather.lower():
-            path = r"images\rainy_day.png"
+            path = resource_path(os.path.join("images", "rainy_day.png"))
             weather_icon = self.parent.return_image_object(path, True, (60, 60))
         elif "snow" in how_is_the_weather.lower():
-            path = r"images\snow_icon.png"
+            path = resource_path(os.path.join("images", "snow_icon.png"))
             weather_icon = self.parent.return_image_object(path, True, (60, 60))
 
         # this label is for today's weather
@@ -380,7 +393,8 @@ class WeatherPage(tk.Frame):
         #changes the icon to a full color star
         if self.fav_button_pressed == 0:
             self.fav_button_pressed = 1
-            star = self.parent.return_image_object(r"images\star3.png", True, (35,35))
+            path = resource_path(os.path.join("images", "star3.png"))
+            star = self.parent.return_image_object(path, True, (35,35))
             self.favorite.config(image=star)
             self.favorite.whatever = star
 
@@ -397,7 +411,8 @@ class WeatherPage(tk.Frame):
         else:
             #this is if fav was already pressed
             self.fav_button_pressed = 0
-            star = self.parent.return_image_object(r"images\star1.png", True, (35,35))
+            path = resource_path(os.path.join("images", "star1.png"))
+            star = self.parent.return_image_object(path, True, (35,35))
             self.favorite.config(image=star)
             self.favorite.whatever = star
             
@@ -405,7 +420,7 @@ class WeatherPage(tk.Frame):
             x.go_favorite_city.grid_forget()
 
             #this assigns the city to the shared parent instance faviable 'fav'
-            self.parent.fav = ""         
+            self.parent.fav = ""      
             
 
 
